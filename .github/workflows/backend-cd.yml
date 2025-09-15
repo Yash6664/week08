@@ -3,7 +3,18 @@ name: CD - Deploy Backend Services to AKS
 on:
   workflow_dispatch:
     inputs:
-      aks_cluster_name: ...
+      aks_cluster_name:
+        description: 'AKS Cluster Name'
+        required: true
+        default: 'yashweek8'
+      aks_resource_group:
+        description: 'AKS Resource Group'
+        required: true
+        default: 'deakinuni'
+      aks_acr_name:
+        description: 'ACR Name'
+        required: true
+        default: 'your-acr-name'
   push:
     branches: [ "main" ]
     paths:
@@ -19,15 +30,6 @@ jobs:
       PRODUCT_API_IP: ${{ steps.get_product_ip.outputs.external_ip }}
       ORDER_API_IP: ${{ steps.get_order_ip.outputs.external_ip }}
 
-    trigger_frontend_cd:
-    needs: deploy_backend
-    uses: ./.github/workflows/frontend-cd.yml
-    with:
-      product_api_ip: ${{ needs.deploy_backend.outputs.product_ip }}
-      order_api_ip: ${{ needs.deploy_backend.outputs.order_ip }}
-      aks_cluster_name: "<aks_name>"
-      aks_resource_group: "<resource_group>"
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,11 +42,11 @@ jobs:
 
       - name: Set Kubernetes context (get AKS credentials)
         run: |
-          az aks get-credentials --resource-group ${{ github.event.inputs.aks_resource_group }} --name ${{ github.event.inputs.aks_cluster_name }} --overwrite-existing
+          az aks get-credentials --resource-group ${{ github.event.inputs.aks_resource_group || 'deakinuni' }} --name ${{ github.event.inputs.aks_cluster_name || 'yashweek8' }} --overwrite-existing
 
       - name: Attach ACR
         run: |
-          az aks update --name ${{ github.event.inputs.aks_cluster_name }} --resource-group ${{ github.event.inputs.aks_resource_group }} --attach-acr ${{ github.event.inputs.aks_acr_name }}
+          az aks update --name ${{ github.event.inputs.aks_cluster_name || 'yashweek8' }} --resource-group ${{ github.event.inputs.aks_resource_group || 'deakinuni' }} --attach-acr ${{ github.event.inputs.aks_acr_name || 'your-acr-name' }}
 
       - name: Deploy Backend Infrastructure (Namespace, ConfigMaps, Secrets, Databases)
         run: |
@@ -104,11 +106,11 @@ jobs:
         run: az logout
 
   trigger_frontend_cd:
-      needs: deploy_backend
-      if: success()
-      uses: ./.github/workflows/frontend-cd.yml
-      with:
-        product_api_ip: ${{ needs.deploy_backend.outputs.product_ip }}
-        order_api_ip: ${{ needs.deploy_backend.outputs.order_ip }}
-        aks_cluster_name: "yashweek8"
-        aks_resource_group: "deakinuni"
+    needs: deploy_backend
+    if: success()
+    uses: ./.github/workflows/frontend-cd.yml
+    with:
+      product_api_ip: ${{ needs.deploy_backend.outputs.PRODUCT_API_IP }}
+      order_api_ip: ${{ needs.deploy_backend.outputs.ORDER_API_IP }}
+      aks_cluster_name: "yashweek8"
+      aks_resource_group: "deakinuni"
