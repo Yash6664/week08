@@ -1,6 +1,9 @@
 name: CD - Deploy Backend Services to AKS
 
 on:
+  workflow_dispatch:
+    inputs:
+      aks_cluster_name: ...
   push:
     branches: [ "main" ]
     paths:
@@ -99,3 +102,13 @@ jobs:
 
       - name: Logout from Azure
         run: az logout
+
+  trigger_frontend_cd:
+      needs: deploy_backend
+      if: success()
+      uses: ./.github/workflows/frontend-cd.yml
+      with:
+        product_api_ip: ${{ needs.deploy_backend.outputs.product_ip }}
+        order_api_ip: ${{ needs.deploy_backend.outputs.order_ip }}
+        aks_cluster_name: "<your-aks-name>"
+         aks_resource_group: "<your-resource-group>"
