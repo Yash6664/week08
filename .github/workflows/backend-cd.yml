@@ -110,5 +110,5 @@ jobs:
       with:
         product_api_ip: ${{ needs.deploy_backend.outputs.product_ip }}
         order_api_ip: ${{ needs.deploy_backend.outputs.order_ip }}
-        aks_cluster_name: "<your-aks-name>"
-         aks_resource_group: "<your-resource-group>"
+        aks_cluster_name: "yashweek8"
+        aks_resource_group: "deakinuni"
