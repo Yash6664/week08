@@ -116,6 +116,4 @@ jobs:
       order_api_ip: ${{ needs.deploy_backend.outputs.ORDER_API_IP }}
       aks_cluster_name: "yashweek8"
       aks_resource_group: "deakinuni"
-    secrets:
-      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-      AZURE_CONTAINER_REGISTRY: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+    secrets: inherit
